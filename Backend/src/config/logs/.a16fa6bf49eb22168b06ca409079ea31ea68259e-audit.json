@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 1
+    },
+    "auditLog": "/home/sirisha/Videos/CaterOrange/Backend/src/config/logs/.a16fa6bf49eb22168b06ca409079ea31ea68259e-audit.json",
+    "files": [
+        {
+            "date": 1727083359886,
+            "name": "/home/sirisha/Videos/CaterOrange/Backend/src/config/logs/error-2024-09-23.log",
+            "hash": "281ae38d665b838cba2181d35832be8e7a57b9d22e10edc04c05da5e08b3e4e0"
+        }
+    ],
+    "hashType": "sha256"
+}
