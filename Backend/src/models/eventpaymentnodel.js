@@ -1,4 +1,4 @@
-const logger = require('../config/logger'); // Ensure you have the logger configured
+const logger = require('../config/logger.js'); // Ensure logger is imported
 const client = require("../config/dbConfig");
 
 const updateeventOrder = async (order_id, payment_id, payment_status) => {
@@ -10,17 +10,13 @@ const updateeventOrder = async (order_id, payment_id, payment_status) => {
     `;
 
     const values = [payment_id, payment_status, order_id];
+
     try {
         const result = await client.query(query, values);
-        logger.info(`Updated event order successfully:`, {
-            order_id,
-            payment_id,
-            payment_status,
-            updated_order: result.rows[0] // Log the updated order details if needed
-        });
-        return result.rows[0]; // Return the updated order
+        logger.info('Event order updated successfully:', { order_id, payment_id, payment_status });
+        return result.rows[0]; // Return the updated order details
     } catch (error) {
-        logger.error('Error updating event order:', { error: error.message, order_id });
+        logger.error('Error updating event order:', error);
         throw error;
     }
 };

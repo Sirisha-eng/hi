@@ -179,6 +179,7 @@ function createEventOrdersTableQuery() {
       event_order_status VARCHAR(50),
       number_of_plates INTEGER,
       processing_date DATE,
+      processing_time VARCHAR,
       FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
       FOREIGN KEY (PaymentId) REFERENCES payment(PaymentId)
     );
@@ -193,17 +194,28 @@ function createEventOrdersTableQuery() {
 }
 
 
-// Create Corporate Category Table
 function createCorporateCategoryTableQuery() {
   return `
     CREATE TABLE IF NOT EXISTS corporate_category (
       category_id SERIAL PRIMARY KEY,
-      category_name VARCHAR(255) NOT NULL,
+      category_name VARCHAR(255) NOT NULL UNIQUE,  -- Add UNIQUE constraint
       category_description VARCHAR(500),
       category_price FLOAT,
       category_media TEXT,
       addedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );`;
+    );
+
+    -- Insert initial categories if the table is empty
+    INSERT INTO corporate_category (category_name, category_description, category_price, category_media)
+    VALUES
+      ('Breakfast', 'We are offering tasty Breakfast here!!!', 40, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnZovlevz8SutD4Y3OAbDqEcbqiu-QV12l5w&s'),
+      ('Veg Lunch', 'We are offering tasty Veg Lunch here!!!', 99, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnZovlevz8SutD4Y3OAbDqEcbqiu-QV12l5w&s'),
+      ('NonVeg Lunch', 'We are offering tasty Nonveg Lunch here!!!', 120, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnZovlevz8SutD4Y3OAbDqEcbqiu-QV12l5w&s'),
+      ('Snacks', 'We are offering tasty Snacks here!!!', 40, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnZovlevz8SutD4Y3OAbDqEcbqiu-QV12l5w&s'),
+      ('Veg Dinner', 'We are offering tasty Veg Dinner here!!!', 99, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnZovlevz8SutD4Y3OAbDqEcbqiu-QV12l5w&s'),
+      ('NonVeg Dinner', 'We are offering tasty Nonveg Dinner here!!!', 40, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnZovlevz8SutD4Y3OAbDqEcbqiu-QV12l5w&s')
+    ON CONFLICT (category_name) DO NOTHING;  -- Prevent inserting duplicate category names
+  `;
 }
 
 // Create Event Category Table
@@ -261,12 +273,12 @@ function createEventCartTableQuery() {
       address JSON,
       number_of_plates INTEGER,
       processing_date DATE,
+      processing_time VARCHAR,
       addedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
     );
   `;
-}
-function createAdminTableQuery() {
+}function createAdminTableQuery() {
   return `
     CREATE TABLE IF NOT EXISTS admin (
       adminid SERIAL PRIMARY KEY,
@@ -295,19 +307,19 @@ function createCorporateCartTableQuery() {
 function createEventProductsTableQuery() {
   return `
     CREATE TABLE IF NOT EXISTS event_products (
-      productId SERIAL PRIMARY KEY,
-      product_id_from_csv VARCHAR NOT NULL UNIQUE,
+      product_id SERIAL PRIMARY KEY,
+      productId VARCHAR NOT NULL UNIQUE,
       ProductName VARCHAR(255),
       Image TEXT,
       Category_Name VARCHAR(255),
       Price_Category VARCHAR(255),
       isDual BOOLEAN,
-      Units VARCHAR(255),
+      Plate_Units VARCHAR(255),
       PriceperUnit FLOAT,
       MinUnitsperPlate INTEGER,
-      Units2 VARCHAR(255),
-      PriceperUnits2 FLOAT,
-      MinUnits2perPlate INTEGER,
+      WtOrVol_Units VARCHAR(255),
+      Price_Per_WtOrVol_Units FLOAT,
+      Min_WtOrVol_Units_per_Plate INTEGER,
       addedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;

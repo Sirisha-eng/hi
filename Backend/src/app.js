@@ -22,6 +22,7 @@ const categoryRoutes= require('./routes/categoryRoutes.js');
 const customerRoutes= require('./routes/customerRoutes.js');
 
 const { fetchAndInsertCSVData } = require('../products.js');
+// const { fetchAndInsertCSVData } = require('../category.js');
 const app = express();
 app.use(express.json());
 const corsOptions = {
@@ -29,16 +30,15 @@ const corsOptions = {
   optionsSuccessStatus: 200,
 };
 
-app.use(cors(corsOptions));
+app.use(cors());
 
-fetchAndInsertCSVData()
 
-app.use('/',addressRoutes)
-app.use('/',paymentRoutes)
-app.use('/',categoryRoutes);
-app.use('/',customerRoutes)
+app.use('/api',addressRoutes)    
+app.use('/api',paymentRoutes)
+app.use('/api',categoryRoutes);
+app.use('/api',customerRoutes)
 
-app.use('/', corporateorderRoutes);
+app.use('/api', corporateorderRoutes);
 
 const initializeApp = async () => {
   try {
@@ -50,82 +50,27 @@ const initializeApp = async () => {
 
     await createTables();
     logger.info('Tables created successfully');
-    const checkCategoryDataQuery = 'SELECT COUNT(*) FROM corporate_category';
-    const result = await client.query(checkCategoryDataQuery);
-    const categoryCount = parseInt(result.rows[0].count, 10);
 
-    
+    const apolloServer = await startApolloServer();
+    logger.info('Apollo Server started');
     app.use(express.json());
 
     app.listen(process.env.PORT, () => {
       logger.info(`Server is running on port ${process.env.PORT}`);
-      // logger.info(`GraphQL endpoint: http://localhost:${process.env.PORT}${apolloServer.graphqlPath}`);
+      logger.info(`GraphQL endpoint: http://localhost:${process.env.PORT}${apolloServer.graphqlPath}`);
     });
   } catch (err) {
     logger.error('Initialization error:', err.message);
     process.exit(1);
+    }
   }
-};
+ 
+
+
 const PHONEPE_HOST_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox";
 const MERCHANT_ID = "PGTESTPAYUAT86";
 const SALT_KEY = "96434309-7796-489d-8924-ab56988a6076";
 const SALT_INDEX = 1;
-
-//Routes
-//app.use('/p', paymentroutes);
-
-
-//     const { userid, amount } = req.body;
-//     //console.log("hello")
-//     const amountinrupee = amount * 100
-//     const payload = {
-//       "merchantId": MERCHANT_ID,
-//       "merchantTransactionId": merchantTransactionId,
-//       "merchantUserId": userid,
-//       "amount": amountinrupee,
-//       "redirectUrl": `http://localhost:7000/redirect-url/${merchantTransactionId}`,
-//       "redirectMode": "REDIRECT",
-//       "callbackUrl": "https://webhook.site/callback-url",
-//       "mobileNumber": "9999999999",
-//       "paymentInstrument": {
-//         "type": "PAY_PAGE"
-//       }
-//     };
-  
-//     const bufferObj = Buffer.from(JSON.stringify(payload), "utf8");
-//     const base64EncodedPayload = bufferObj.toString("base64");
-  
-//     const xVerify = crypto
-//       .createHash('sha256')
-//       .update(base64EncodedPayload + payEndpoint + SALT_KEY)
-//       .digest('hex') + "###" + SALT_INDEX;
-  
-//     const options = {
-//       method: 'post',
-//       url: PHONEPE_HOST_URL + payEndpoint,
-//       headers: {
-//         accept: 'application/json',
-//         'Content-Type': 'application/json',
-//         "X-VERIFY": xVerify
-//       },
-//       data: {
-//         request: base64EncodedPayload
-//       }
-//     };
-//     console.log("1")
-//     axios
-//       .request(options)
-//       .then(function (response) {
-//           console.log("2")
-//         console.log(response.data);
-//         const url = response.data.data.instrumentResponse.redirectInfo.url;
-//         res.json({ redirectUrl: url }); 
-//       })
-//       .catch(function (error) {
-//         console.error(error);
-//         res.status(500).send(error.message);
-//       });
-//   });
   
 async function startApolloServer() {
   const server = new ApolloServer({ typeDefs, resolvers });
@@ -136,7 +81,7 @@ async function startApolloServer() {
   return server;
 }
 
-app.post("/pay", async(req, res) => {
+app.post("/api/pay", async(req, res) => {
   const payEndpoint = "/pg/v1/pay";
   const merchantTransactionId = uniqid();
   const {amount,corporateorder_id } = req.body;
@@ -201,7 +146,7 @@ app.post("/pay", async(req, res) => {
     });
 });
 
-app.get('/redirect-url/:merchantTransactionId', async(req, res) => {
+app.get('/api/redirect-url/:merchantTransactionId', async(req, res) => {
   const { merchantTransactionId } = req.params;
   const { customer_id, corporateorder_id  } = req.query;
   console.log(customer_id)
@@ -252,9 +197,12 @@ app.get('/redirect-url/:merchantTransactionId', async(req, res) => {
           } catch (error) {
             console.error("Error in sending payment data: ", error);
           }
-
+          if(corporateorder_id[0]==='C'){
           // Redirect to success page
-          res.redirect('http://localhost:3000/success');
+          res.redirect('http://localhost:3000/success');}
+          else if(corporateorder_id[0]==='E'){
+            res.redirect('http://localhost:3000/Esuccess');
+          }
           // Redirect to the success page
         } else {
           res.redirect('http://localhost:3000/failure'); // Redirect to a failure page if needed
@@ -269,7 +217,9 @@ app.get('/redirect-url/:merchantTransactionId', async(req, res) => {
   }
 });
 initializeApp();
-app.use('/', allRoutes);
+fetchAndInsertCSVData() 
+app.use('/api', allRoutes);
 app.use('/api',eventRoutes);
 
 
+//164.52.203.128
